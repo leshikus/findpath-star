@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "findpath.h"
 
 class Map {
@@ -12,7 +13,7 @@ public:
         pMap(_pMap), nWidth(_nWidth), nHeight(_nHeight), nSize(_nWidth * _nHeight) {
     }
     
-    inline int pos(int x, int y) {
+    inline int toPos(int x, int y) {
         return x + y * nWidth;
     }
     
@@ -42,6 +43,9 @@ class MarkedMap: public Map {
     // distance from joinPos to the start
     int joinDist;
     
+    // heuristics for *pProcessed
+    int hCur;
+    
 public:
     bool isPathFound;
     int bestDist;
@@ -54,12 +58,13 @@ public:
         
         pProcessed = pEnd = pKnown;
         
-        posStart = pos(nStartX, nStartY);
-        posTarget = pos(nTargetX, nTargetY);
+        posStart = toPos(nStartX, nStartY);
+        posTarget = toPos(nTargetX, nTargetY);
         
         pDist[posStart] = 1;
         pDist[posTarget] = -1;
         
+        hCur = 0;
         markSourceNeighbors(posStart, 1);
         markTargetNeighbors(posTarget, -1);
     }
@@ -71,7 +76,7 @@ public:
 
     void markSource(const int pos, const int m) {
         if (DEBUG) {
-            printf("markSource: pos = %i, d = %i\n", pos, m);
+            printf("markSource: pos = %i, m = %i\n", pos, m);
         }
         
         int d = pDist[pos];        
@@ -79,78 +84,51 @@ public:
             isPathFound = true;
             joinPos = pos;
             joinDist = m;
+            bestDist = m - d;
             return;
         }
         if (d >= m) return;
-        d != 0 add a point again?
-
-        pDist[pos] = m;
-        if (DEBUG) printf("marked at %i\n", pEnd - pEquidistantSet);
-
-        pMarkedMap[pos] = d;
         
-        add
+        assert(d == 0); // if d != 0 have to add a point again?
+        pDist[pos] = m;
+        
         // add to the queue (here goes a*)
-        if (better(pos, *pProcessed)) {
-            *pEnd = *pProcessed;
-            *pProcessed = pos;
-        } else {
-            *pEnd = pos;
-        }
-        pEnd++;
+        addPos(pos, dist(pos, posTarget) + m);
     }
 
     void markTarget(const int pos, const int m) {
         if (DEBUG) {
-            printf("markTarget: pos = %i, d = %i\n", pos, m);
+            printf("markSource: pos = %i, m = %i\n", pos, m);
         }
-
+        
         int d = pDist[pos];        
         if (d > 0) {
             isPathFound = true;
+            joinPos = pos;
+            joinDist = - m;
             bestDist = d - m;
-            pDist[] = d;
             return;
         }
-
-        // is completed?
-        if (pos == nTarget) {
-            isPathFound = true;
-            fillPath();
-            return;
-        }
+        if (d <= m) return;
         
-        if (pMap[pos] == 0) return;
-        
-        int d = pDist[pos];
-        
-        if (d == 0) {
-        } else 
-         oldDist == 0)< 0) && (d < 0)) {
-            if (d <= oldDist) return;
-            
-        } else if (){
-            
-        }
-        
-        // mark
-        pDist[pos] = d;
-        
-        if (pMarkedMap[pos] != 0) return;
-        
-        if (debug) printf("marked at %i\n", pEnd - pEquidistantSet);
-
-        pMarkedMap[pos] = d;
+        assert(d == 0); // if d != 0 have to add a point again?
+        pDist[pos] = m;
         
         // add to the queue (here goes a*)
-        if (better(pos, *pProcessed)) {
+        addPos(pos, dist(pos, posStart) - m);
+    }
+
+    void addPos(int pos, int hNew) {
+        if (DEBUG) printf("marked %i with %i\n", pos, hNew);
+        if (hNew < hCur) {
             *pEnd = *pProcessed;
             *pProcessed = pos;
+            hCur = hNew;
         } else {
             *pEnd = pos;
         }
-        pEnd++;
-    }    
+        pEnd++;        
+    }
     
     void markSourceNeighbors(const int pos, const int m) {
         if (pos % nWidth >= 1) markSource(pos - 1, m);
@@ -169,11 +147,11 @@ public:
     }
 
     int findNeighbor(const int pos, const int m) {
-        if ((pos % nWidth >= 1) && (pMarkedMap[pos - 1] == m)) return pos - 1;
-        if ((pos % nWidth < nWidth - 1) && (pMarkedMap[pos + 1] == m)) return pos + 1;
+        if ((pos % nWidth >= 1) && (pDist[pos - 1] == m)) return pos - 1;
+        if ((pos % nWidth < nWidth - 1) && (pDist[pos + 1] == m)) return pos + 1;
 
-        if ((pos >= nWidth) && (pMarkedMap[pos - nWidth] == m)) return pos - nWidth;
-        if ((pos < nSize - nWidth) && (pMarkedMap[pos + nWidth] == m)) return pos + nWidth;
+        if ((pos >= nWidth) && (pDist[pos - nWidth] == m)) return pos - nWidth;
+        if ((pos < nSize - nWidth) && (pDist[pos + nWidth] == m)) return pos + nWidth;
         return -1;
     }
     
@@ -181,10 +159,16 @@ public:
         int pos = *pProcessed;
         int d = pDist[pos];
         assert(d);
+        
         pProcessed++;
         
-        if (d > 0) markSourceNeighbors(pos, d + 1)
-            else markTargetNeighbors(pos, d - 1);
+        if (d > 0) {
+            hCur = dist(pos, posTarget) + d;
+            markSourceNeighbors(pos, d + 1);
+        } else {
+            hCur = dist(pos, posStart) - d;
+            markTargetNeighbors(pos, d - 1);
+        }
 
         if (DEBUG) {
             int i, j, k;
@@ -205,18 +189,18 @@ public:
             }
         }
         
-        int pos = joinPos;        
-        for (int d = sourceDist - 1; d > 0; d--) {
+        int pos = joinPos;     
+        for (int d = joinDist - 1; d > 0; d--) {
             pOutBuffer[d] = pos;
             pos = findNeighbor(pos, d);
         }
-        pOutBuffer[0] = p;
+        pOutBuffer[0] = pos;
 
         pos = joinPos;
-        int td = 1 + sourceDist - bestDist;
-        for (int d = sourceDist; d < bestDist - 1; d++, td++) {
-            p = findNeighbor(p, td);
-            pOutBuffer[d] = p;
+        int td = 1 + joinDist - bestDist;
+        for (int d = joinDist; d < bestDist - 1; d++, td++) {
+            pos = findNeighbor(pos, td);
+            pOutBuffer[d] = pos;
         }
         pOutBuffer[bestDist - 1] = posTarget;
     }

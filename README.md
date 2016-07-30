@@ -1,2 +1,2 @@
-# findpath
-Implements pathfinding algorithm А star
+# findpath-star
+Implements А* pathfinding algorithm
