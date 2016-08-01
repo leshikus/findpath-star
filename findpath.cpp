@@ -81,6 +81,8 @@ public:
             printf("markSource: pos = %i, m = %i\n", pos, m);
         }
         
+        if (pMap[pos] != 1) return;
+        
         int d = pDist[pos];        
         if (d < 0) {
             isPathFound = true;
@@ -89,9 +91,9 @@ public:
             bestDist = m - d;
             return;
         }
-        if (d >= m) return;
-        
-        assert(d == 0); // if d != 0 have to add a point again?
+        assert(d <= m); // if d > m have to add a point again?
+        if (d > 0) return; // 1 .. m - this is no worse then m, skipping
+        // d == 0 here and below
         pDist[pos] = m;
         
         // add to the queue (here goes a*)
@@ -104,6 +106,8 @@ public:
         if (DEBUG) {
             printf("markSource: pos = %i, m = %i\n", pos, m);
         }
+
+        if (pMap[pos] != 1) return;
         
         int d = pDist[pos];        
         if (d > 0) {
@@ -113,9 +117,11 @@ public:
             bestDist = d - m;
             return;
         }
-        if (d <= m) return;
+
+        assert(d >= m);
+        if (d < 0) return;
+        // d == 0 here and below
         
-        assert(d == 0); // if d != 0 have to add a point again?
         pDist[pos] = m;
         
         // add to the queue (here goes a*)
