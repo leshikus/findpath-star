@@ -11,6 +11,15 @@ static int findPathVerbose(const int nStartX, const int nStartY,
     const int nTargetX, const int nTargetY,
     unsigned char* pMap, const int nMapWidth, const int nMapHeight,
     int* pOutBuffer, const int nOutBufferSize) {
+
+    int i, j, k;    
+    if (VERBOSE && (nMapWidth <= MAX_DEBUG_WIDTH)) {
+        for (j = 0, k = 0; j < nMapHeight; j++) {
+            for(i = 0; i < nMapWidth; i++) printf("%d", pMap[k++]);
+            printf("\n");
+        }
+    }
+    
         
     int len = FindPath(nStartX, nStartY, nTargetX, nTargetY,
         pMap, nMapWidth, nMapHeight,
@@ -18,19 +27,11 @@ static int findPathVerbose(const int nStartX, const int nStartY,
         
     if (!VERBOSE) return len;
     
-    printf("Path length = %d\n", len);    
-    int i, j, k;
-        
+    printf("Path length = %d\n", len);            
     if ((len > 0) && (len <= nOutBufferSize) && (len <= MAX_DEBUG_BUFFER)) {
         for (k = 0; k < len; k++) printf("p[%i] = %i\n", k, pOutBuffer[k]);
     }
 
-    if (nMapWidth > MAX_DEBUG_WIDTH) return len;
-    for (j = 0, k = 0; j < nMapHeight; j++) {
-        for(i = 0; i < nMapWidth; i++) printf("%d", pMap[k++]);
-        printf("\n");
-    }
-    
     return len;
 }
 

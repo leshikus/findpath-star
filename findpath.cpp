@@ -53,7 +53,7 @@ public:
     MarkedMap(const int nStartX, const int nStartY, const int nTargetX, const int nTargetY, const unsigned char* _pMap, const int _nWidth, const int _nHeight):
         Map(_pMap, _nWidth, _nHeight), isPathFound(false) {
             
-        pDist = new int[nSize];
+        pDist = (int*) calloc(nSize, sizeof(int));
         pKnown = new int [nSize];
         
         pProcessed = pEnd = pKnown;
@@ -71,10 +71,12 @@ public:
 
     ~MarkedMap() {
         delete[] pKnown;
-        delete[] pDist;
+        free(pDist);
     }
 
     void markSource(const int pos, const int m) {
+        debugDist();
+        
         if (DEBUG) {
             printf("markSource: pos = %i, m = %i\n", pos, m);
         }
@@ -97,6 +99,8 @@ public:
     }
 
     void markTarget(const int pos, const int m) {
+        debugDist();
+
         if (DEBUG) {
             printf("markSource: pos = %i, m = %i\n", pos, m);
         }
@@ -154,6 +158,16 @@ public:
         if ((pos < nSize - nWidth) && (pDist[pos + nWidth] == m)) return pos + nWidth;
         return -1;
     }
+
+    void debugDist() {
+        if (!DEBUG) return;
+
+        int i, j, k;
+        for (j = 0, k = 0; j < nHeight; j++) {
+            for(i = 0; i < nWidth; i++) printf("%3d", pDist[k++]);
+            printf("\n");
+        }
+    }
     
     void processNext() {
         int pos = *pProcessed;
@@ -168,14 +182,6 @@ public:
         } else {
             hCur = dist(pos, posStart) - d;
             markTargetNeighbors(pos, d - 1);
-        }
-
-        if (DEBUG) {
-            int i, j, k;
-            for (j = 0, k = 0; j < nHeight; j++) {
-                for(i = 0; i < nWidth; i++) printf("%3d", pDist[k++]);
-                printf("\n");
-            }
         }
     }
     
