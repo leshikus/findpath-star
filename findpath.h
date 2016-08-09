@@ -1,7 +1,9 @@
 #ifndef FINDPATH_H
 #define FINDPATH_H
 
-#define DEBUG 0
+const int DEBUG = 0;
+const int MAX_DEBUG_WIDTH = 40;
+const int STATS = 1;
 
 int FindPath(const int nStartX, const int nStartY,
     const int nTargetX, const int nTargetY,

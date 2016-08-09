@@ -78,6 +78,7 @@ public:
 
     void debugDist() const {
         if (!DEBUG) return;
+        if (nWidth > MAX_DEBUG_WIDTH) return;
 
         int i, j, k;
         for (j = 0, k = 0; j < nHeight; j++) {

@@ -4,7 +4,6 @@
 #include "findpath.h"
 
 const int VERBOSE = 1;
-const int MAX_DEBUG_WIDTH = 40;
 const int MAX_DEBUG_BUFFER = 40;
 
 static int findPathVerbose(const int nStartX, const int nStartY,

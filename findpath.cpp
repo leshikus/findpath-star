@@ -7,12 +7,14 @@
 
 class NodeQueue {
     MarkedMap* map;
-    int* queue;
+    const int* queue;
+    const int* pStart;
+    
     int* pEnd;
     int* pProcessed;
-    int sign;
-    int from;
-    int to;
+    const int sign;
+    const int from;
+    const int to;
     
     // for pProcessed node
     int dist; // actual distance to "from" node + 1
@@ -38,7 +40,7 @@ class NodeQueue {
 
 public:    
     NodeQueue(MarkedMap* _map, int _from, int _to, int* _queue, int _start, int _sign):
-        map(_map), queue(_queue), pEnd(_queue + _start), pProcessed(_queue + _start),
+        map(_map), queue(_queue), pStart(_queue + _start), pEnd(_queue + _start), pProcessed(_queue + _start),
         sign(_sign), from(_from), to(_to) {
         setDist(from, 1);
 
@@ -93,7 +95,11 @@ public:
             *pEnd = pos;
         }
         pEnd += sign;
-    }    
+    }
+
+    int size() const {
+        return (pEnd - pStart) * sign;
+    }
 };
 
 void MarkedMap::mark(const int pos, NodeQueue* queue) {
@@ -124,8 +130,11 @@ int FindPath(const int nStartX, const int nStartY,
     NodeQueue targetQueue(&map, posTarget, posStart, map.pQueue, map.nSize - 1, -1);
 
     for (int i = 0; i < map.nSize; i += 2) {
-        if (sourceQueue.search()) return map.pathLen;
-        if (targetQueue.search()) return map.pathLen;
+        if (sourceQueue.search()) break;
+        if (targetQueue.search()) break;
     }
+    
+    if (STATS) printf("Nodes: source = %i, target = %i, total = %i\n", sourceQueue.size(), targetQueue.size(), sourceQueue.size() + targetQueue.size());
+    return map.pathLen;
 }
 
