@@ -1,12 +1,12 @@
 #include <stdio.h>
-#include <assert.h>
 #include <stdlib.h>
 #include "findpath.h"
+#include "test.h"
 
-const int VERBOSE = 1;
+const int VERBOSE = 0;
 const int MAX_DEBUG_BUFFER = 40;
 
-static int findPathVerbose(const int nStartX, const int nStartY,
+int findPathVerbose(const int nStartX, const int nStartY,
     const int nTargetX, const int nTargetY,
     unsigned char* pMap, const int nMapWidth, const int nMapHeight,
     int* pOutBuffer, const int nOutBufferSize) {
@@ -26,9 +26,19 @@ static int findPathVerbose(const int nStartX, const int nStartY,
         
     if (!VERBOSE) return len;
     
-    printf("Path length = %d\n", len);            
+    printf("Path length = %d\n", len);
+
     if ((len > 0) && (len <= nOutBufferSize) && (len <= MAX_DEBUG_BUFFER)) {
         for (k = 0; k < len; k++) printf("p[%i] = %i\n", k, pOutBuffer[k]);
+    }
+    
+    if (!VERBOSE || (nMapWidth > MAX_DEBUG_WIDTH)) return len;
+
+    printf("The path:\n");
+    for (k = 0; k < len; k++) pMap[pOutBuffer[k]] = 2;
+    for (j = 0, k = 0; j < nMapHeight; j++) {
+        for(i = 0; i < nMapWidth; i++) printf("%d", pMap[k++]);
+        printf("\n");
     }
 
     return len;
@@ -119,6 +129,7 @@ void test4(const int mapWidth, const int mapHeight, const int mod, const int res
     
     int len = findPathVerbose(1, 1, mapWidth - 2, mapHeight - 2, pMap, mapWidth, mapHeight, pOutBuffer, size);    
     assert(len == res);
+    assert(pOutBuffer[len - 1] == size - mapWidth - 2);
     
     free(pMap);
     free(pOutBuffer);
@@ -145,24 +156,24 @@ void test5(const int mapWidth, const int mapHeight, const int mod, const int res
     
     int len = findPathVerbose(1, 1, mapWidth - 2, mapHeight - 2, pMap, mapWidth, mapHeight, pOutBuffer, size);    
     assert(len == res);
+    assert(pOutBuffer[len - 1] == size - mapWidth - 2);
     
     free(pMap);
     free(pOutBuffer);
 }
 
-
-
 int main()
 {
-    test1();
-    test2();
-    test3();
-    test4(20, 20, 8, 34);
-    test5(20, 20, 3, 68);
+    // test1();
+    // test2();
+    // test3();
+    //test4(20, 20, 8, 34);
+    //test5(20, 20, 3, 68);
 
-    test4(1000, 1000, 3, 1994);
-    test5(20000, 20000, 3, 79988);
-    test4(20000, 20000, 3, 39994);
+    // test4(1000, 1000, 3, 1994);
+    // test5(20000, 20000, 3, 79988);
+    // test4(20000, 20000, 3, 39994);
+    test6();
     
     return 0;
 }
