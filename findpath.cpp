@@ -119,7 +119,10 @@ int FindPath(const int nStartX, const int nStartY,
     const unsigned char* pMap, const int nMapWidth, const int nMapHeight,
     int* pOutBuffer, const int nOutBufferSize) {
         
-    if ((nStartX == nTargetX) && (nStartY == nTargetY)) return 0;
+    if ((nStartX == nTargetX) && (nStartY == nTargetY)) {
+        if (nOutBufferSize >= 1) pOutBuffer[0] = nTargetY * nMapWidth + nTargetX;
+        return 0;
+    }
     
     MarkedMap map(pMap, nMapWidth, nMapHeight, pOutBuffer, nOutBufferSize);  
     

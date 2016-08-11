@@ -3,7 +3,7 @@
 #include "findpath.h"
 #include "test.h"
 
-const int VERBOSE = 0;
+const int VERBOSE = 1;
 const int MAX_DEBUG_BUFFER = 40;
 
 int findPathVerbose(const int nStartX, const int nStartY,
@@ -25,10 +25,11 @@ int findPathVerbose(const int nStartX, const int nStartY,
         pOutBuffer, nOutBufferSize);
         
     if (!VERBOSE) return len;
-    
-    printf("Path length = %d\n", len);
 
-    if ((len > 0) && (len <= nOutBufferSize) && (len <= MAX_DEBUG_BUFFER)) {
+    printf("Path length = %d\n", len);
+    if (len == -1) return len;
+
+    if ((len <= nOutBufferSize) && (len <= MAX_DEBUG_BUFFER)) {
         for (k = 0; k < len; k++) printf("p[%i] = %i\n", k, pOutBuffer[k]);
     }
     
@@ -36,15 +37,55 @@ int findPathVerbose(const int nStartX, const int nStartY,
 
     printf("The path:\n");
     for (k = 0; k < len; k++) pMap[pOutBuffer[k]] = 2;
+    pMap[nStartX + nMapWidth * nStartY] = 2;
+    
     for (j = 0, k = 0; j < nMapHeight; j++) {
         for(i = 0; i < nMapWidth; i++) printf("%d", pMap[k++]);
         printf("\n");
     }
+    printf("\n");
 
     return len;
 }
 
 static void test1() {
+    unsigned char pMap[] = { 1 };
+    int pOutBuffer[1];
+    int len = findPathVerbose(0, 0, 0, 0, pMap, 1, 1, pOutBuffer, 1);
+
+    assert(len == 0);
+    assert(pOutBuffer[0] == 0);
+}
+
+static void test2() {
+    unsigned char pMap[] = { 1, 1 };
+    int pOutBuffer[1];
+    int len = findPathVerbose(1, 0, 0, 0, pMap, 2, 1, pOutBuffer, 1);
+    
+    assert(len == 1);
+    assert(pOutBuffer[0] == 0);
+}
+
+static void test4() {
+    unsigned char pMap[] = { 1, 0, 0, 1 };
+    int pOutBuffer[1];
+    int len = findPathVerbose(0, 0, 1, 1, pMap, 2, 2, pOutBuffer, 1);
+    
+    assert(len == -1);
+}
+
+static void test9() {
+    unsigned char pMap[] = {
+        0, 0, 1,
+        0, 1, 1,
+        1, 0, 1};
+    int pOutBuffer[7];
+    int len = findPathVerbose(2, 0, 0, 2, pMap, 3, 3, pOutBuffer, 7);    
+    
+    assert(len == -1);
+}
+
+static void test12() {
     unsigned char pMap[] = {
         1, 1, 1, 1,
         0, 1, 0, 1,
@@ -58,18 +99,35 @@ static void test1() {
     assert(pOutBuffer[2] == 9);
 }
 
-static void test2() {
+static void test16() {
     unsigned char pMap[] = {
-        0, 0, 1,
-        0, 1, 1,
-        1, 0, 1};
-    int pOutBuffer[7];
-    int len = findPathVerbose(2, 0, 0, 2, pMap, 3, 3, pOutBuffer, 7);    
-    
-    assert(len == -1);
+        1, 1, 1, 1,
+        0, 1, 0, 1,
+        0, 1, 1, 1,
+        1, 1, 1, 1};
+    int pOutBuffer[12];
+    int len = findPathVerbose(0, 0, 1, 2, pMap, 4, 4, pOutBuffer, 2);
+
+    assert(len == 3);
 }
 
-void test3() {
+static void test56() {
+    unsigned char pMap[] = {
+        1, 1, 1, 1, 1, 1, 1, 1,
+        1, 1, 0, 0, 1, 1, 1, 1,
+        1, 1, 1, 0, 1, 1, 1, 1,
+        1, 1, 1, 0, 1, 1, 1, 1,
+        1, 1, 1, 0, 1, 1, 1, 1,
+        1, 1, 0, 0, 1, 1, 1, 1,
+        1, 1, 1, 1, 1, 1, 1, 1
+    };
+    int pOutBuffer[14];
+    int len = findPathVerbose(2, 3, 7, 3, pMap, 8, 7, pOutBuffer, 14);
+
+    assert(len == 13);
+}
+
+void test100() {
     int mapWidth = 10;
     int mapHeight = 10;
     unsigned char pMap[] = {
@@ -111,7 +169,7 @@ int rand(int m) {
     return r % m;
 }
 
-void test4(const int mapWidth, const int mapHeight, const int mod, const int res) {
+void test_r0(const int mapWidth, const int mapHeight, const int mod, const int res) {
     const int size = mapWidth * mapHeight;
     
     unsigned char* pMap = (unsigned char*) malloc(size * sizeof(char));
@@ -135,7 +193,7 @@ void test4(const int mapWidth, const int mapHeight, const int mod, const int res
     free(pOutBuffer);
 }
 
-void test5(const int mapWidth, const int mapHeight, const int mod, const int res) {
+void test_rs(const int mapWidth, const int mapHeight, const int mod, const int res) {
     const int size = mapWidth * mapHeight;
     
     unsigned char* pMap = (unsigned char*) malloc(size * sizeof(char));
@@ -164,16 +222,21 @@ void test5(const int mapWidth, const int mapHeight, const int mod, const int res
 
 int main()
 {
-    // test1();
-    // test2();
-    // test3();
-    //test4(20, 20, 8, 34);
-    //test5(20, 20, 3, 68);
+    test1();
+    test2();
+    test4();
+    test9();
+    test12();
+    test16();
+    test56();
+    //test100();
+    //test_r0(20, 20, 8, 34);
+    //test_rs(20, 20, 3, 68);
 
-    // test4(1000, 1000, 3, 1994);
-    // test5(20000, 20000, 3, 79988);
-    // test4(20000, 20000, 3, 39994);
-    test6();
+    // test_r0(1000, 1000, 3, 1994);
+    // test_rs(20000, 20000, 3, 79988);
+    // test_r0(20000, 20000, 3, 39994);
+    // test6();
     
     return 0;
 }
